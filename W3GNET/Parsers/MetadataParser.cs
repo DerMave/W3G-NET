@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
-using Ionic.Zlib;
 using W3GNET.Extensions;
 using W3GNET.Types;
 using W3GNET.Util;
@@ -73,19 +73,29 @@ namespace W3GNET.Parsers
     {
         private BinaryReader reader;
 
-        public async Task<ReplayMetadata> Parse(DataBlock[] blocks)
+        public Task<ReplayMetadata> Parse(DataBlock[] blocks)
         {
             var buffers = new List<byte>();
             foreach (var block in blocks)
             {
-                using (var inflater = new ZlibStream(block.buffer, CompressionMode.Decompress))
+                // Skip the 2-byte zlib header before decompressing with DeflateStream
+                block.buffer.ReadByte();
+                block.buffer.ReadByte();
+
+                using (var inflater = new DeflateStream(block.buffer, CompressionMode.Decompress))
                 {
-                    inflater.FlushMode = FlushType.Sync;
-                    var block2 = inflater.Copy(block.BlockDecompressedSize);
-                    await inflater.ReadAsync(block2);
-                    if (block2.Length > 0 && block.BlockSize > 0)
+                    var decompressed = new byte[block.BlockDecompressedSize];
+                    int totalRead = 0;
+                    while (totalRead < decompressed.Length)
                     {
-                        buffers.AddRange(block2);
+                        int bytesRead = inflater.Read(decompressed, totalRead, decompressed.Length - totalRead);
+                        if (bytesRead == 0)
+                            break;
+                        totalRead += bytesRead;
+                    }
+                    if (totalRead > 0 && block.BlockSize > 0)
+                    {
+                        buffers.AddRange(new ArraySegment<byte>(decompressed, 0, totalRead));
                     }
                 }
             }
@@ -114,7 +124,7 @@ namespace W3GNET.Parsers
             reader.SkipBytes(1);
             var startSpotCount = reader.ReadByte();
 
-            return new ReplayMetadata
+            return Task.FromResult(new ReplayMetadata
             {
                 gameData = reader.SliceFromCurrentOffset((int)(reader.BaseStream.Length - reader.BaseStream.Position)),
                 map = mapMetadata,
@@ -124,7 +134,7 @@ namespace W3GNET.Parsers
                 reforgedPlayerMetadata = reforgedPlayerMetadata.ToArray(),
                 StartSpotCount = startSpotCount,
                 slotRecords = slotRecords,
-            };
+            });
         }
 
         private List<SlotRecord> ParseSlotRecords(byte slotRecordCount)

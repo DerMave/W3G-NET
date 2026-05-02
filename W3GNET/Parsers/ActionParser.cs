@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using W3GNET.Extensions;
+using W3GNET.Formatters;
 
 namespace W3GNET.Parsers
 {
@@ -90,7 +91,7 @@ namespace W3GNET.Parsers
         public int Id { get; set; } = 0x16;
         public int selectMode;
         public int numberUnits;
-        public Tuple<byte[], byte[]>[] actions;
+        public Tuple<uint, uint>[] actions;
     }
 
     public class AssignGroupHotkeyAction : W3Action
@@ -98,7 +99,7 @@ namespace W3GNET.Parsers
         public int Id { get; set; } = 0x17;
         public int groupNumber;
         public int numberUnits;
-        public Tuple<byte[], byte[]>[] actions;
+        public Tuple<uint, uint>[] actions; // Changed from Tuple<byte[], byte[]> to Tuple<uint, uint> 
     }
 
     public class SelectGroupHotkeyAction : W3Action
@@ -241,7 +242,7 @@ namespace W3GNET.Parsers
             float targetBY;
             ushort numberUnits;
             byte groupNumber;
-            Tuple<byte[], byte[]>[] actions;
+            Tuple<uint, uint>[] actions;
             uint unknown1;
             uint unknown2;
             string syncString1;
@@ -663,28 +664,16 @@ namespace W3GNET.Parsers
             return null;
         }
 
-        private Tuple<byte[], byte[]>[] ReadSelectionUnits(int length)
+        private Tuple<uint, uint>[] ReadSelectionUnits(int length)
         {
-            Tuple<byte[], byte[]>[] v = new Tuple<byte[], byte[]>[length];
+            Tuple<uint, uint>[] v = new Tuple<uint, uint>[length];
             for (int i = 0; i < length; i++)
             {
-                var obj = new Tuple<byte[], byte[]>(
-                    new byte[]
-                    {
-                        reader.ReadByte(),
-                        reader.ReadByte(),
-                        reader.ReadByte(),
-                        reader.ReadByte(),
-                    },
-                    new byte[]
-                    {
-                        reader.ReadByte(),
-                        reader.ReadByte(),
-                        reader.ReadByte(),
-                        reader.ReadByte(),
-                    });
 
-                v[i] = obj;
+                var obj = new Tuple<uint, uint>(
+                    reader.ReadUInt32(),
+                    reader.ReadUInt32());
+                v[i]=obj;
             }
             return v;
         }

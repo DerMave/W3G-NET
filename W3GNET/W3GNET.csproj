@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <Version>1.6.0</Version>
     <Title>W3G.NET</Title>
     <Authors>LazZ</Authors>
@@ -10,9 +10,5 @@
     <RepositoryUrl>https://github.com/TheLazzoro/W3G-NET</RepositoryUrl>
     <PackageTags>warcraft;war3;w3;replay;warcraftreplay;warcraft3</PackageTags>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="DotNetZip" Version="1.16.0" />
-  </ItemGroup>
 
 </Project>

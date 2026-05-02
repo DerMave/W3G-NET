@@ -19,20 +19,20 @@ namespace W3GNET.Parsers
         public int timeMS;
     }
 
-    internal class TimeslotBlock : GameDataBlock
+    public class TimeslotBlock : GameDataBlock
     {
         public int Id { get; } = 0x1f | 0x1e;
-        internal int timeIncrement;
-        internal List<CommandBlock> commandBlocks;
+        public int timeIncrement;
+        public List<CommandBlock> commandBlocks;
     }
 
 
-    internal class PlayerChatMessageBlock : GameDataBlock
+    public class PlayerChatMessageBlock : GameDataBlock
     {
         public int Id { get; } = 0x20;
-        internal byte playerId;
-        internal uint mode;
-        internal string message;
+        public byte playerId;
+        public uint mode;
+        public string message;
     }
 
     public interface GameDataBlock
@@ -40,10 +40,10 @@ namespace W3GNET.Parsers
         int Id { get; }
     }
 
-    internal class CommandBlock
+    public class CommandBlock
     {
-        internal int playerId;
-        internal List<W3Action> actions;
+        public int playerId;
+        public List<W3Action> actions;
     }
 
 
