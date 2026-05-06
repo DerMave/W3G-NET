@@ -195,7 +195,30 @@ namespace W3GNET
 
         private void DetermineWinningTeam()
         {
-            // TODO
+            // Stage 1: Player leaving with result 0x09 (little-endian "09000000") won the game
+            var victoryLeave = LeaveEvents.FirstOrDefault(e => e.result == 9);
+            if (victoryLeave != null && Players.ContainsKey(victoryLeave.playerId))
+            {
+                WinningTeam = Players[victoryLeave.playerId].TeamId;
+                return;
+            }
+
+            // Stage 2: Player leaving with reason 0x0c ("0c000000") was forced out by WC3 as the winner
+            var gameOverLeave = LeaveEvents.FirstOrDefault(e => e.reason == 12);
+            if (gameOverLeave != null && Players.ContainsKey(gameOverLeave.playerId))
+            {
+                WinningTeam = Players[gameOverLeave.playerId].TeamId;
+                return;
+            }
+
+            // Stage 3: First non-observer to leave loses; the other team wins
+            var firstLeave = LeaveEvents.FirstOrDefault(e =>
+                Players.ContainsKey(e.playerId) && !IsObserver(Players[e.playerId]));
+            if (firstLeave != null)
+            {
+                var losingTeam = Players[firstLeave.playerId].TeamId;
+                WinningTeam = Teams.Keys.FirstOrDefault(t => t != losingTeam);
+            }
         }
 
         private void HandleBasicReplayInformation(ParserOutput info)
